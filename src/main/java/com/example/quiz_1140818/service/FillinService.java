@@ -50,12 +50,12 @@ public class FillinService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public BasicRes fillin(User user, int quizId, List<Answer> answerList) throws Exception {
-		// ­nÀË¬dµª®×¡AÀË¬dªº°ò·Ç´N¬O¦s¦bDB¤¤ªº¦P±i°İ¨÷ªº¨º¨Ç°İÃD
-		// 1. ¨ú¥X¦P±i°İ¨÷ªº©Ò¦³°İÃD
+		// è¦æª¢æŸ¥ç­”æ¡ˆï¼Œæª¢æŸ¥çš„åŸºæº–å°±æ˜¯å­˜åœ¨DBä¸­çš„åŒå¼µå•å·çš„é‚£äº›å•é¡Œ
+		// 1. å–å‡ºåŒå¼µå•å·çš„æ‰€æœ‰å•é¡Œ
 		List<Question> questionList = questionDao.getByQuizId(quizId);
 
 		for (Question question : questionList) {
-			// 2. ÀË¬d¥²¶ñ¬O§_³£¦³µª®×
+			// 2. æª¢æŸ¥å¿…å¡«æ˜¯å¦éƒ½æœ‰ç­”æ¡ˆ
 			if (question.isRequired()) {
 				BasicRes res = checkRequiredAnswer(question.getQuestionId(), answerList, //
 						question.getType());
@@ -63,7 +63,7 @@ public class FillinService {
 					return res;
 				}
 			}
-			// 3. ¬Û¦P°İÃD½s¸¹¤U¡AÀË¬dµª®×¤¤ªº¿ï¶µ¬O§_¸ò°İ¨÷¤¤ªº¿ï¶µ¤@¼Ë
+			// 3. ç›¸åŒå•é¡Œç·¨è™Ÿä¸‹ï¼Œæª¢æŸ¥ç­”æ¡ˆä¸­çš„é¸é …æ˜¯å¦è·Ÿå•å·ä¸­çš„é¸é …ä¸€æ¨£
 			List<Options> reqOptionList = new ArrayList<>();
 			for (Answer answer : answerList) {
 				if (question.getQuestionId() == answer.getQuestionId()) {
@@ -80,7 +80,7 @@ public class FillinService {
 				throw e;
 			}
 		}
-		// 4. ¼gµª®×: ¥i¯à·|¦³¦hµ§¡A©Ò¥H­n¥[¤W @Transactional
+		// 4. å¯«ç­”æ¡ˆ: å¯èƒ½æœƒæœ‰å¤šç­†ï¼Œæ‰€ä»¥è¦åŠ ä¸Š @Transactional
 		try {
 			for (Answer item : answerList) {
 				fillinDao.fillin(quizId, item.getQuestionId(), user.getEmail(), //
@@ -96,7 +96,7 @@ public class FillinService {
 
 	private BasicRes checkRequiredAnswer(int questionId, List<Answer> answerList, String type) {
 		for (Answer answer : answerList) {
-			// ¤ñ¹ï¬Û¦P°İÃD½s¸¹¡A½T»{°İÃD«¬ºA©Ò¹ïÀ³ªº answer ¬O§_¦³­È
+			// æ¯”å°ç›¸åŒå•é¡Œç·¨è™Ÿï¼Œç¢ºèªå•é¡Œå‹æ…‹æ‰€å°æ‡‰çš„ answer æ˜¯å¦æœ‰å€¼
 			if (answer.getQuestionId() == questionId) {
 				if (type.equalsIgnoreCase(QuestionType.SINGLE.getType())) {
 					if (answer.getRadioAnswer() <= 0) {
@@ -108,9 +108,9 @@ public class FillinService {
 						return new BasicRes(ResCodeMessage.TEXT_ANSWER_IS_REQUIRED.getCode(), //
 								ResCodeMessage.TEXT_ANSWER_IS_REQUIRED.getMessage());
 					}
-				} else { // °İÃD«¬ºA¬O¦h¿ï
+				} else { // å•é¡Œå‹æ…‹æ˜¯å¤šé¸
 					for (Options item : answer.getOptionsList()) {
-						// ÀË¬d¦Ü¤Ö¦³¤@­Ó checkBoolean ªº­È¬O true
+						// æª¢æŸ¥è‡³å°‘æœ‰ä¸€å€‹ checkBoolean çš„å€¼æ˜¯ true
 						if (item.isCheckBoolean()) {
 							return null;
 						}
@@ -125,7 +125,7 @@ public class FillinService {
 
 	private BasicRes checkOptions(String optionsStr, List<Options> reqOptionsList)//
 			throws Exception {
-		// Âà´« optionsStr ¦¨ª«¥ó List<Options>
+		// è½‰æ› optionsStr æˆç‰©ä»¶ List<Options>
 		try {
 			List<Options> optionsList = mapper.readValue(optionsStr, new TypeReference<>() {
 			});
@@ -133,7 +133,7 @@ public class FillinService {
 				int code = item.getCode();
 				String optionName = item.getOptionName();
 				for (Options reqItem : reqOptionsList) {
-					// ¬Û¦P½s¸¹¤U¡A­Y¿ï¶µ¤£¤@¼Ë¡A«h¦^¶Ç¿ù»~
+					// ç›¸åŒç·¨è™Ÿä¸‹ï¼Œè‹¥é¸é …ä¸ä¸€æ¨£ï¼Œå‰‡å›å‚³éŒ¯èª¤
 					if (code == reqItem.getCode()) {
 						if (!optionName.equalsIgnoreCase(reqItem.getOptionName())) {
 							return new BasicRes(ResCodeMessage.QUESTION_OPTION_MISMATCH.getCode(), //
@@ -154,13 +154,13 @@ public class FillinService {
 					ResCodeMessage.QUIZ_ID_ERROR.getMessage());
 		}
 		List<Question> questionList = questionDao.getByQuizId(quizId);
-		// ±N Question Âà¦¨ QuestionAnswerVo
+		// å°‡ Question è½‰æˆ QuestionAnswerVo
 		Map<Integer, QuestionAnswerVo> map = new HashMap<>();
 		for (Question question : questionList) {
 			QuestionAnswerVo vo = new QuestionAnswerVo(question.getQuizId(), //
 					question.getQuestionId(), question.getName(), //
 					question.getType(), question.isRequired());
-			// °İÃD½s¸¹¡Avo
+			// å•é¡Œç·¨è™Ÿï¼Œvo
 			map.put(question.getQuestionId(), vo);
 		}
 
@@ -168,16 +168,16 @@ public class FillinService {
 
 		List<Fillin> fillinList = fillinDao.getByQuizId(quizId);
 		// ====================================
-		// ¤@­Ó email ªí¥Ü¤@¦ì¨Ï¥ÎªÌªº FeedbackVo
+		// ä¸€å€‹ email è¡¨ç¤ºä¸€ä½ä½¿ç”¨è€…çš„ FeedbackVo
 		Map<String, FeedbackVo> emailFeedbackVoMap = new HashMap<>();
 		for (Fillin item : fillinList) {
 			FeedbackVo feedbackVo = new FeedbackVo();
 			List<QuestionAnswerVo> questionAnswerVoList = new ArrayList<>();
 			String email = item.getEmail();
-			if (!emailFeedbackVoMap.containsKey(email)) { // ªí¥Ü©|¥¼°O¿ı¨ì¸Ó user ªºµª®×
+			if (!emailFeedbackVoMap.containsKey(email)) { // è¡¨ç¤ºå°šæœªè¨˜éŒ„åˆ°è©² user çš„ç­”æ¡ˆ
 				User user = new User(item.getName(), item.getPhone(), item.getEmail(), //
 						item.getAge(), item.getGender());
-				// ±N User¡BQuiz¡BQuestionVoList¡BFillinDate ³]©w¨ì feedbackVo
+				// å°‡ Userã€Quizã€QuestionVoListã€FillinDate è¨­å®šåˆ° feedbackVo
 				feedbackVo.setUser(user);
 				feedbackVo.setQuiz(quiz);
 				feedbackVo.setFillinDate(item.getFillinDate());
@@ -190,7 +190,7 @@ public class FillinService {
 
 			try {
 				Answer ans = mapper.readValue(item.getAnswerStr(), Answer.class);
-				// ³z¹L questionId ·í§@ key ±q map ¤¤¨ú±o¹ïÀ³ªº QuestionAnswerVo
+				// é€é questionId ç•¶ä½œ key å¾ map ä¸­å–å¾—å°æ‡‰çš„ QuestionAnswerVo
 				QuestionAnswerVo vo = map.get(item.getQuestionId());
 				vo.setOptionsList(ans.getOptionsList());
 				vo.setTextAnswer(ans.getTextAnswer());
@@ -201,7 +201,7 @@ public class FillinService {
 			}
 
 		}
-		// ±N emailFeedbackVoMap ªº FeedbackVo ¼W¥[¨ì feedbackVoList
+		// å°‡ emailFeedbackVoMap çš„ FeedbackVo å¢åŠ åˆ° feedbackVoList
 		List<FeedbackVo> feedbackVoList = new ArrayList<>();
 		for (Entry<String, FeedbackVo> mapItem : emailFeedbackVoMap.entrySet()) {
 			feedbackVoList.add(mapItem.getValue());
@@ -215,68 +215,68 @@ public class FillinService {
 			return new StatisticRes(ResCodeMessage.QUIZ_ID_ERROR.getCode(), //
 					ResCodeMessage.QUIZ_ID_ERROR.getMessage());
 		}
-		// ±N°İÃD¬ÛÃöªº¸ê°T³]©wµ¹ QuestionAnswerVo
+		// å°‡å•é¡Œç›¸é—œçš„è³‡è¨Šè¨­å®šçµ¦ QuestionAnswerVo
 		//  questionId, QuestionCountVo
 		Map<Integer, QuestionCountVo> voMap = setQuestionAnswerVo(quizId);
-		// ¨Ï¥Î QuizId ¼´¨ú©Ò¦³ªº¶ñµª
+		// ä½¿ç”¨ QuizId æ’ˆå–æ‰€æœ‰çš„å¡«ç­”
 		List<Fillin> fillinList = fillinDao.getByQuizId(quizId);
-		// °İÃD½s¸¹,     ¿ï¶µ½s¸¹      ¿ï¶µ     ¦¸¼Æ
+		// å•é¡Œç·¨è™Ÿ,     é¸é …ç·¨è™Ÿ      é¸é …     æ¬¡æ•¸
 		Map<Integer, Map<Integer, Map<String, Integer>>> map = new HashMap<>();
 		for (Fillin fillin : fillinList) {
 			try {
-				// 1. §â answer_str Âà¦¨ Answer
+				// 1. æŠŠ answer_str è½‰æˆ Answer
 				Answer ans = mapper.readValue(fillin.getAnswerStr(), Answer.class);
-				// 2. ²Î­p¦¸¼Æ
-				// 2.1 Â²µªÃD
+				// 2. çµ±è¨ˆæ¬¡æ•¸
+				// 2.1 ç°¡ç­”é¡Œ
 				if (StringUtils.hasText(ans.getTextAnswer())) {
-					// textAnswer ¦³¤º®eªº¸Ü¡Aªí¥Ü¸ÓÃD¬OÂ²µªÃD --> ¸õ¹L
+					// textAnswer æœ‰å…§å®¹çš„è©±ï¼Œè¡¨ç¤ºè©²é¡Œæ˜¯ç°¡ç­”é¡Œ --> è·³é
 					continue;
 				}
-				//  ¿ï¶µ½s¸¹,      ¿ï¶µ,  ¦¸¼Æ 
+				//  é¸é …ç·¨è™Ÿ,      é¸é …,  æ¬¡æ•¸ 
 				Map<Integer, Map<String, Integer>> codeOpCountMap = new HashMap<>();
 				if (map.containsKey(ans.getQuestionId())) {
-					// ­Y°İÃD½s¸¹¤w¦s¦b¡A«h§â¹ïÀ³ªº ¿ï¶µ½s¸¹¡B¿ï¶µ¡B¦¸¼Æªº Map ¨ú¥X
+					// è‹¥å•é¡Œç·¨è™Ÿå·²å­˜åœ¨ï¼Œå‰‡æŠŠå°æ‡‰çš„ é¸é …ç·¨è™Ÿã€é¸é …ã€æ¬¡æ•¸çš„ Map å–å‡º
 					codeOpCountMap = map.get(ans.getQuestionId());
 				}
-				// 2.2 ¦h¿ïÃD: ¥ı°µªº­ì¦]¬O¦]¬°­n¥ı¨ú±o¿ï¶µ½s¸¹»P¿ï¶µ¡A¦Ó¨äµª®×¬O¸j©w¦b List<Options> ¤¤
-				//             ¥i¥H¶¶«K»`¶°¦¸¼Æ
+				// 2.2 å¤šé¸é¡Œ: å…ˆåšçš„åŸå› æ˜¯å› ç‚ºè¦å…ˆå–å¾—é¸é …ç·¨è™Ÿèˆ‡é¸é …ï¼Œè€Œå…¶ç­”æ¡ˆæ˜¯ç¶å®šåœ¨ List<Options> ä¸­
+				//             å¯ä»¥é †ä¾¿è’é›†æ¬¡æ•¸
 				for (Options op : ans.getOptionsList()) {
-					// ¥ı§PÂ_ opCountMap ¤¤¬O§_¤w¦³»`¶°¹Lªº¿ï¶µ½s¸¹
+					// å…ˆåˆ¤æ–· opCountMap ä¸­æ˜¯å¦å·²æœ‰è’é›†éçš„é¸é …ç·¨è™Ÿ
 					if(codeOpCountMap.containsKey(op.getCode())) {
-						// ¦³»`¶°¹Lªº¿ï¶µ½s¸¹
-						// §PÂ_ checkBoolean ªº­È¬O§_¬° true
+						// æœ‰è’é›†éçš„é¸é …ç·¨è™Ÿ
+						// åˆ¤æ–· checkBoolean çš„å€¼æ˜¯å¦ç‚º true
 						if(op.isCheckBoolean()) {
-							// --> ¨ú¥X¹ïÀ³ªº value (¿ï¶µ©M¦¸¼Æªº map)
-							//    ¿ï¶µ, ¦¸¼Æ
+							// --> å–å‡ºå°æ‡‰çš„ value (é¸é …å’Œæ¬¡æ•¸çš„ map)
+							//    é¸é …, æ¬¡æ•¸
 							Map<String, Integer> opCountMap = codeOpCountMap.get(op.getCode());
-							// --> ¨ú¥X¿ï¶µ¹ïÀ³ªº¦¸¼Æ«á¦A + 1
+							// --> å–å‡ºé¸é …å°æ‡‰çš„æ¬¡æ•¸å¾Œå† + 1
 							int count = opCountMap.get(op.getOptionName()) + 1;
-							// --> ±N§ó·s«áªº¦¸¼Æ©ñ¦^(put) opCountMap
+							// --> å°‡æ›´æ–°å¾Œçš„æ¬¡æ•¸æ”¾å›(put) opCountMap
 							opCountMap.put(op.getOptionName(), count);
-							// codeOpCountMap ¤£»İ­n§ó·s¡A¦]¬°¨ä¹ïÀ³ value ªº°O¾ĞÅé¤Wªº­È(opCountMap)¤w§ó·s
+							// codeOpCountMap ä¸éœ€è¦æ›´æ–°ï¼Œå› ç‚ºå…¶å°æ‡‰ value çš„è¨˜æ†¶é«”ä¸Šçš„å€¼(opCountMap)å·²æ›´æ–°
 						}
 					} else {
-						// ¨S¦³»`¶°¹Lªº¿ï¶µ½s¸¹ --> «Ø¥ß·sªº, ¦¸¼Æ¬O 0
+						// æ²’æœ‰è’é›†éçš„é¸é …ç·¨è™Ÿ --> å»ºç«‹æ–°çš„, æ¬¡æ•¸æ˜¯ 0
 						Map<String, Integer> opCountMap = new HashMap<>();
 						int count = 0;
-						// checkBoolean ªº­È¬O§_¬° true
+						// checkBoolean çš„å€¼æ˜¯å¦ç‚º true
 						if(op.isCheckBoolean()) {
-							// ¦³ªº¸Ü --> ¦¸¼ÆÅÜ¦¨ 1
+							// æœ‰çš„è©± --> æ¬¡æ•¸è®Šæˆ 1
 							count = 1;
 						}
 						opCountMap.put(op.getOptionName(), count);
-						// ±Nµ²ªG§ó·s¦^ codeOpCountMap
+						// å°‡çµæœæ›´æ–°å› codeOpCountMap
 						codeOpCountMap.put(op.getCode(), opCountMap);
 					}
 				}
-				// ¦Ü¦¹¿ï¶µ½s¸¹©M¿ï¶µ¤w»`¶°§¹²¦
-				// 2.3 ³æ¿ïÃD
+				// è‡³æ­¤é¸é …ç·¨è™Ÿå’Œé¸é …å·²è’é›†å®Œç•¢
+				// 2.3 å–®é¸é¡Œ
 				if (ans.getRadioAnswer() > 0) {
-					// ®Ú¾Ú¿ï¶µ½s¸¹±q Map<¿ï¶µ½s¸¹,Map<¿ï¶µ,¦¸¼Æ>> ¤¤¨ú¥X¹ïÀ³ªº Map<¿ï¶µ,¦¸¼Æ>
+					// æ ¹æ“šé¸é …ç·¨è™Ÿå¾ Map<é¸é …ç·¨è™Ÿ,Map<é¸é …,æ¬¡æ•¸>> ä¸­å–å‡ºå°æ‡‰çš„ Map<é¸é …,æ¬¡æ•¸>
 					Map<String, Integer> opCountMap = codeOpCountMap.get(ans.getRadioAnswer());
-					// §ó·s¦¸¼Æ
+					// æ›´æ–°æ¬¡æ•¸
 					for(String optionName : opCountMap.keySet()) {
-						// opCountMap ¤¤¥u·|¦³¤@µ§¸ê®Æ¦Ó¤w¡A¦]¬°¤@­Ó¿ï¶µ½s¸¹¤U¡A¥u·|¦³¤@­Ó¿ï¶µ©M¤@­Ó¦¸¼Æ
+						// opCountMap ä¸­åªæœƒæœ‰ä¸€ç­†è³‡æ–™è€Œå·²ï¼Œå› ç‚ºä¸€å€‹é¸é …ç·¨è™Ÿä¸‹ï¼Œåªæœƒæœ‰ä¸€å€‹é¸é …å’Œä¸€å€‹æ¬¡æ•¸
 						int count = opCountMap.get(optionName) + 1;
 						opCountMap.put(optionName, count);
 					}
@@ -286,7 +286,7 @@ public class FillinService {
 				throw e;
 			}
 		}
-		// ±N¨C¤@ÃD¤¤¨C­Ó½s¸¹ªº¿ï¶µ©M¦¸¼Æ³]©w¦^ QuestionCountVo
+		// å°‡æ¯ä¸€é¡Œä¸­æ¯å€‹ç·¨è™Ÿçš„é¸é …å’Œæ¬¡æ•¸è¨­å®šå› QuestionCountVo
 		List<QuestionCountVo> voList = setAndGetQuestionCountVoList(map, voMap);
 		Quiz quiz = quizDao.getById(quizId);
 		StatisticVo statisticVo = new StatisticVo(quiz, voList);
@@ -294,21 +294,21 @@ public class FillinService {
 				ResCodeMessage.SUCCESS.getMessage(), statisticVo);
 	}
 	
-	// ±N Question ªº©Ò¦³¿ï¾ÜÃDªº°ò¥»¸ê°T(¤£¥]§t¿ï¶µ©M¦¸¼Æ)³]©w¨ì QuestionCountVo
+	// å°‡ Question çš„æ‰€æœ‰é¸æ“‡é¡Œçš„åŸºæœ¬è³‡è¨Š(ä¸åŒ…å«é¸é …å’Œæ¬¡æ•¸)è¨­å®šåˆ° QuestionCountVo
 	private Map<Integer, QuestionCountVo> setQuestionAnswerVo(int quizId) {
-		// ±N°İÃD¬ÛÃöªº¸ê°T³]©wµ¹ QuestionAnswerVo
+		// å°‡å•é¡Œç›¸é—œçš„è³‡è¨Šè¨­å®šçµ¦ QuestionAnswerVo
 		List<Question> questionList = questionDao.getByQuizId(quizId);
-		// ±N Question Âà¦¨ QuestionAnswerVo
+		// å°‡ Question è½‰æˆ QuestionAnswerVo
 		Map<Integer, QuestionCountVo> map = new HashMap<>();
 		for (Question question : questionList) {
-			// ¸õ¹LÂ²µªÃD
+			// è·³éç°¡ç­”é¡Œ
 			if (QuestionType.checkTextType(question.getType())) {
 				continue;
 			}
 			QuestionCountVo vo = new QuestionCountVo(//
 					question.getQuestionId(), question.getName(), //
 					question.getType(), question.isRequired());
-			// °İÃD½s¸¹¡Avo
+			// å•é¡Œç·¨è™Ÿï¼Œvo
 			map.put(question.getQuestionId(), vo);
 		}
 		return map;
@@ -319,10 +319,10 @@ public class FillinService {
 		List<QuestionCountVo> voList = new ArrayList<>();
 		for(int questionId : map.keySet()) {
 			List<OptionsCount> opCountList = new ArrayList<>();
-			// ¨ú¥X¹ïÀ³ªº Map<¿ï¶µ½s¸¹, Map<¿ï¶µ, ¦¸¼Æ>>
+			// å–å‡ºå°æ‡‰çš„ Map<é¸é …ç·¨è™Ÿ, Map<é¸é …, æ¬¡æ•¸>>
 			Map<Integer, Map<String, Integer>> codeOpCountMap = map.get(questionId);	
-			// ¥H¤U2ºØ¼gªk¾Ü¤@
-			// ¼gªk1
+			// ä»¥ä¸‹2ç¨®å¯«æ³•æ“‡ä¸€
+			// å¯«æ³•1
 			for(int code : codeOpCountMap.keySet()) {
 				Map<String, Integer> opNameCountMap = codeOpCountMap.get(code);
 				for(String opName : opNameCountMap.keySet()) {
@@ -331,14 +331,14 @@ public class FillinService {
 					opCountList.add(opCount);
 				}
 			}
-			// ¼gªk2: ¥H¤U¬O Lambda ¼gªk: °õ¦æ®Ä²v¦³¤ñ¤W­±ªºµ{¦¡½X¦n
+			// å¯«æ³•2: ä»¥ä¸‹æ˜¯ Lambda å¯«æ³•: åŸ·è¡Œæ•ˆç‡æœ‰æ¯”ä¸Šé¢çš„ç¨‹å¼ç¢¼å¥½
 //			codeOpCountMap.forEach((code, v) -> {
 //				v.forEach((opName, count) -> {
 //					OptionsCount opCount = new OptionsCount(code, opName, count);
 //					opCountList.add(opCount);
 //				});
 //			});
-			// voMap ¬O¤§«e¥ı¾ã²z¹Lªº Map<°İÃD½s¸¹, QuestionCountVo>¡A©Ò¥H©Ò¦³¿ï¾ÜÃD³£·|¦³
+			/* voMap æ˜¯ä¹‹å‰å…ˆæ•´ç†éçš„ Map<å•é¡Œç·¨è™Ÿ, QuestionCountVo>ï¼Œæ‰€ä»¥æ‰€æœ‰é¸æ“‡é¡Œéƒ½æœƒæœ‰ */
 			QuestionCountVo vo = voMap.get(questionId);
 			vo.setOptionsCountList(opCountList);
 			voList.add(vo);
